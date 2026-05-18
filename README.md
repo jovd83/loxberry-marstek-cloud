@@ -21,8 +21,31 @@ Home Assistant integration plus our own live probes against the EU endpoint.
 
 **Pre-release / v0.1.0.** Functionally complete; tested end-to-end against
 the real Marstek cloud API and the LoxBerry built-in MQTT Gateway inside a
-sandbox container. Not yet road-tested over weeks on a physical LoxBerry,
-so treat as beta and report any rough edges via Issues.
+sandbox container, and confirmed running on a physical LoxBerry 3.0.1.2
+(Raspberry Pi 4, aarch64) — see screenshots below. Treat as beta and
+report any rough edges via Issues.
+
+## Screenshots
+
+**Plugin settings page — account section.** Renders inside the LoxBerry
+shell, shows the live daemon state and log path/size:
+
+![Plugin settings — account](screenshots/02-plugin-settings-account.png)
+
+**Plugin settings page — MQTT + advanced.** The *Use the built-in
+LoxBerry MQTT broker* checkbox is on by default and shows the
+auto-discovered broker line; the *Auto-register topic prefix* checkbox
+drops `<prefix>/#` into the built-in MQTT Gateway with no manual
+subscription step:
+
+![Plugin settings — MQTT and advanced](screenshots/03-plugin-settings-mqtt-and-topics.png)
+
+**LoxBerry MQTT Gateway — live virtual inputs flowing to Loxone.** All
+`marstek/<sn>/<datapoint>` and `marstek/_status` / `_device_count` /
+`_last_poll_epoch` topics arrive at the Miniserver as Virtual Inputs,
+all status **OK**:
+
+![MQTT Gateway — marstek virtual inputs](screenshots/01-mqtt-gateway-virtual-inputs.png)
 
 ## Download
 
