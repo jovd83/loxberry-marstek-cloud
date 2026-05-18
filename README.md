@@ -121,7 +121,7 @@ curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1
 ## Installation
 
 1. Grab `marstek-cloud-<version>.zip` from the [**Download**](#download)
-   section above (or build it yourself — see *Building from source* below).
+   section above.
 2. In LoxBerry: **Plugin Management → Plugin Install**, upload the ZIP,
    enter your **SecurePIN**, click *Install*.
 3. Open the plugin tile — it appears under *Plugin Settings*.
@@ -214,45 +214,6 @@ The plugin page surfaces the daemon's current state at the top
 | Topics appear in `mosquitto_sub -t '#'` but **not** in Loxone | LoxBerry's built-in MQTT Gateway is not running or has not picked up `mqtt_subscriptions.cfg` | Check *System → MQTT → Gateway* in the LoxBerry UI; confirm `<prefix>/#` is in the subscription list. The plugin writes this file on every daemon start. |
 | `_status` stuck on `error` even after fixing creds | Daemon got stuck on a cached token | The plugin auto-handles this since v0.1.0 (code-as-string fix). If still stuck, *Save and restart daemon* on the plugin page. |
 | `Missing dependency: paho-mqtt` | apt step failed at install time | `sudo apt-get install -y python3-paho-mqtt` on the LoxBerry host, then restart the plugin daemon. |
-
-## Building from source
-
-LoxBerry installs `.zip` archives whose root folder name matches the
-`FOLDER` parameter in `plugin.cfg` (here: `marstek-cloud`). To produce a
-clean install ZIP from a checkout of this repo:
-
-```bash
-rm -rf _stage marstek-cloud-0.1.0.zip
-mkdir -p _stage/marstek-cloud
-find . -type d -name __pycache__ -prune \
-   -o -type d -name '.git*' -prune \
-   -o -type f ! -name '*.pyc' ! -name 'marstek-cloud-*.zip' -print | \
-   while read f; do
-     mkdir -p "_stage/marstek-cloud/$(dirname "$f")"
-     cp "$f" "_stage/marstek-cloud/$f"
-   done
-( cd _stage && python -m zipfile -c ../marstek-cloud-0.1.0.zip marstek-cloud )
-rm -rf _stage
-```
-
-Upload the resulting `marstek-cloud-0.1.0.zip` via *Plugin Management →
-Plugin Install*.
-
-## Security posture
-
-| Concern | Mitigation in this release |
-|---|---|
-| Marstek password at rest | Stored plaintext in `default.json` because the Marstek API requires `md5(plaintext)` on every login. File mode forced to `0600 loxberry:loxberry` by both CGI save and daemon load. |
-| Password / email / MD5 leaking to logs | Daemon's error messages call `redact_url()` to strip `?pwd=…&mailbox=…` query strings; the `redact()` helper masks email and token in info-level logs. |
-| CSRF rewriting `api_base_url` to attacker host | CGI rejects on save with a visible error; daemon rejects at startup with a clear log line. Allow-list = `*.hamedata.com` + `localhost`. |
-| Daemon running as root | Daemon hook drops privileges via `su loxberry -c` when invoked as root at boot; forks directly when invoked by the CGI (already running as loxberry under Apache). |
-| Local MQTT broker plaintext on `localhost` | Acceptable — single-host loopback. Bind to TLS broker via the manual broker fields if you have one. |
-
-Known limitations: no CSRF token on the save form (LoxBerry framework
-limitation — auth is HTTP Basic, all plugins share this posture);
-`su loxberry -c` in the daemon wrapper interpolates env-derived paths
-(safe today since none are runtime-user-controlled, but defense-in-depth
-could be improved).
 
 ## Development
 
