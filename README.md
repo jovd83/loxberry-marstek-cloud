@@ -24,6 +24,30 @@ the real Marstek cloud API and the LoxBerry built-in MQTT Gateway inside a
 sandbox container. Not yet road-tested over weeks on a physical LoxBerry,
 so treat as beta and report any rough edges via Issues.
 
+## Download
+
+Direct link to the installable ZIP for the current release (v0.1.0):
+
+```
+https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+```
+
+Version-agnostic "always-latest" URL (GitHub redirects to whichever release
+is marked latest — currently v0.1.0):
+
+```
+https://github.com/jovd83/loxberry-marstek-cloud/releases/latest/download/marstek-cloud-0.1.0.zip
+```
+
+Or browse the release page:
+<https://github.com/jovd83/loxberry-marstek-cloud/releases/tag/v0.1.0>
+
+You can also pull it directly on the LoxBerry host with:
+
+```bash
+curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+```
+
 ## Features
 
 - **Zero-config MQTT** — checkbox *"Use the built-in LoxBerry MQTT broker"*
@@ -73,9 +97,8 @@ so treat as beta and report any rough edges via Issues.
 
 ## Installation
 
-1. Grab `marstek-cloud-<version>.zip` from this repo's
-   [**Releases**](../../releases/latest) page (or build it yourself — see
-   *Building from source* below).
+1. Grab `marstek-cloud-<version>.zip` from the [**Download**](#download)
+   section above (or build it yourself — see *Building from source* below).
 2. In LoxBerry: **Plugin Management → Plugin Install**, upload the ZIP,
    enter your **SecurePIN**, click *Install*.
 3. Open the plugin tile — it appears under *Plugin Settings*.
