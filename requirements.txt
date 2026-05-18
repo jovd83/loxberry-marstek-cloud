@@ -1,0 +1,5 @@
+# NOTE: NOT processed by the LoxBerry installer. Production deps are
+# declared in dpkg/apt (Debian package names). This file exists only as
+# documentation for local Python development outside LoxBerry, e.g.
+# running the daemon against a host-side mosquitto for ad-hoc debugging.
+paho-mqtt>=1.6.1

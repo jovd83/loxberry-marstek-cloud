@@ -1,0 +1,123 @@
+#!/bin/bash
+# LoxBerry daemon wrapper for marstek-cloud.
+#
+# Supports two invocation styles:
+#   (1) no-arg                 — used by /etc/systemd/system/loxberry.service at
+#                                boot. The reference implementation is
+#                                /opt/loxberry/system/daemons/system/50-mqttgateway:
+#                                two lines, su to loxberry, fork to background.
+#   (2) start|stop|restart|status — SysV-style; used by the plugin's web UI
+#                                ("Save and restart daemon").
+#
+# Plugin LB env vars (LBPBINDIR, LBPLOGDIR, …) are NOT set when invoked by
+# loxberry.service, so derive everything from a fixed plugin folder name.
+
+set -eu
+
+PLUGINNAME="marstek-cloud"
+LBHOMEDIR="${LBHOMEDIR:-/opt/loxberry}"
+DAEMON_USER="loxberry"
+DAEMON_PATH="${LBHOMEDIR}/bin/plugins/${PLUGINNAME}/${PLUGINNAME}.py"
+PIDFILE="${LBHOMEDIR}/log/plugins/${PLUGINNAME}/${PLUGINNAME}.pid"
+LOGDIR="${LBHOMEDIR}/log/plugins/${PLUGINNAME}"
+PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3}"
+
+mkdir -p "$LOGDIR"
+chown "$DAEMON_USER:$DAEMON_USER" "$LOGDIR" 2>/dev/null || true
+
+is_running() {
+  [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null
+}
+
+start_daemon() {
+  if is_running; then
+    echo "$PLUGINNAME is already running (PID $(cat "$PIDFILE"))."
+    return 0
+  fi
+  if [ ! -f "$DAEMON_PATH" ]; then
+    echo "Daemon not found: $DAEMON_PATH" >&2
+    return 1
+  fi
+  echo "Starting $PLUGINNAME daemon..."
+  # Export LoxBerry plugin env so the daemon resolves its config/log dirs the
+  # same way as a real LoxBerry shell would.
+  export LBHOMEDIR="$LBHOMEDIR"
+  export LBPBINDIR="$LBHOMEDIR/bin/plugins/$PLUGINNAME"
+  export LBPCONFIGDIR="$LBHOMEDIR/config/plugins/$PLUGINNAME"
+  export LBPDATADIR="$LBHOMEDIR/data/plugins/$PLUGINNAME"
+  export LBPLOGDIR="$LBHOMEDIR/log/plugins/$PLUGINNAME"
+  export LBPTEMPLATEDIR="$LBHOMEDIR/templates/plugins/$PLUGINNAME"
+  export LBPHTMLAUTHDIR="$LBHOMEDIR/webfrontend/htmlauth/plugins/$PLUGINNAME"
+  # If we're already running as the loxberry user (e.g. when the web UI
+  # calls "restart" from the CGI), just fork directly. Otherwise drop
+  # privileges via su (boot-time invocation from loxberry.service runs as root).
+  CURRENT_USER="$(id -un)"
+  if [ "$CURRENT_USER" = "$DAEMON_USER" ]; then
+    nohup "$PYTHON_BIN" "$DAEMON_PATH" >>"$LOGDIR/daemon-stderr.log" 2>&1 &
+    echo "$!" > "$PIDFILE"
+  else
+    su "$DAEMON_USER" -c "
+      export LBHOMEDIR='$LBHOMEDIR' \
+             LBPBINDIR='$LBPBINDIR' \
+             LBPCONFIGDIR='$LBPCONFIGDIR' \
+             LBPDATADIR='$LBPDATADIR' \
+             LBPLOGDIR='$LBPLOGDIR' \
+             LBPTEMPLATEDIR='$LBPTEMPLATEDIR' \
+             LBPHTMLAUTHDIR='$LBPHTMLAUTHDIR'
+      nohup '$PYTHON_BIN' '$DAEMON_PATH' >>'$LOGDIR/daemon-stderr.log' 2>&1 &
+      echo \$! > '$PIDFILE'
+    "
+  fi
+  sleep 1
+  if is_running; then
+    echo "Started (PID $(cat "$PIDFILE"))."
+  else
+    # Daemon already exited (likely a clean exit due to missing config,
+    # or a real crash). Don't leave a stale pidfile behind.
+    rm -f "$PIDFILE"
+    echo "Daemon exited immediately; check $LOGDIR/marstek-cloud.log and $LOGDIR/daemon-stderr.log" >&2
+    return 1
+  fi
+}
+
+stop_daemon() {
+  if [ ! -f "$PIDFILE" ]; then
+    echo "$PLUGINNAME is not running."
+    return 0
+  fi
+  PID="$(cat "$PIDFILE" 2>/dev/null || true)"
+  if [ -n "${PID:-}" ] && kill -0 "$PID" 2>/dev/null; then
+    echo "Stopping $PLUGINNAME daemon (PID $PID)..."
+    kill "$PID" 2>/dev/null || true
+    for _ in 1 2 3 4 5; do
+      if ! kill -0 "$PID" 2>/dev/null; then
+        rm -f "$PIDFILE"
+        return 0
+      fi
+      sleep 1
+    done
+    echo "$PLUGINNAME did not stop within 5 seconds; sending SIGKILL." >&2
+    kill -9 "$PID" 2>/dev/null || true
+  fi
+  rm -f "$PIDFILE"
+}
+
+case "${1:-start}" in
+  start)   start_daemon ;;
+  stop)    stop_daemon ;;
+  restart) stop_daemon || true; start_daemon ;;
+  status)
+    if is_running; then
+      echo "$PLUGINNAME is running (PID $(cat "$PIDFILE"))."
+    else
+      echo "$PLUGINNAME is not running."
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

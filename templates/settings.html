@@ -1,0 +1,320 @@
+<div class="container-fluid" style="padding-top: 10px;">
+
+  <TMPL_IF NAME="SAVED">
+    <div class="alert alert-success" role="alert">
+      <i class="fas fa-check-circle"></i>
+      Configuration saved &mdash; daemon restarted.
+    </div>
+  </TMPL_IF>
+  <TMPL_IF NAME="ERROR">
+    <div class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-triangle"></i>
+      <TMPL_VAR NAME="ERROR" ESCAPE=HTML>
+    </div>
+  </TMPL_IF>
+
+  <!-- Header card -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">
+        <i class="fas fa-cloud"></i>
+        <TMPL_VAR NAME="TITLE" ESCAPE=HTML>
+        <small class="pull-right text-muted">v<TMPL_VAR NAME="VERSION" ESCAPE=HTML></small>
+      </h3>
+    </div>
+    <div class="panel-body">
+      <p>
+        Bridges your Marstek battery from the Marstek Cloud
+        (<code>eu.hamedata.com</code>) to the LoxBerry MQTT Gateway, so the
+        Loxone Miniserver can read state of charge, charge/discharge power,
+        load and profit as Virtual Inputs.
+      </p>
+      <p>
+        <strong>Daemon:</strong>
+        <TMPL_IF NAME="DAEMON_RUNNING">
+          <span class="label label-success"><TMPL_VAR NAME="DAEMON_STATE" ESCAPE=HTML></span>
+        <TMPL_ELSE>
+          <TMPL_IF NAME="ENABLED">
+            <span class="label label-danger"><TMPL_VAR NAME="DAEMON_STATE" ESCAPE=HTML></span>
+          <TMPL_ELSE>
+            <span class="label label-default"><TMPL_VAR NAME="DAEMON_STATE" ESCAPE=HTML></span>
+          </TMPL_IF>
+        </TMPL_IF>
+        &nbsp;
+        <strong>Log:</strong>
+        <code><TMPL_VAR NAME="LOG_PATH" ESCAPE=HTML></code>
+        (<TMPL_VAR NAME="LOG_SIZE" ESCAPE=HTML> bytes)
+      </p>
+    </div>
+  </div>
+
+  <form method="post" action="<TMPL_VAR NAME="SELF_URL" ESCAPE=HTML>" class="form-horizontal" autocomplete="off">
+
+    <!-- Cloud account -->
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fas fa-user-shield"></i> Marstek Cloud account</h3>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label for="enabled" class="col-sm-3 control-label">Enabled</label>
+          <div class="col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="enabled" id="enabled" value="1" <TMPL_IF NAME="ENABLED">checked</TMPL_IF>>
+              Poll the cloud and publish to MQTT
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="col-sm-3 control-label">Account email</label>
+          <div class="col-sm-9">
+            <input type="email" class="form-control" name="email" id="email"
+                   value="<TMPL_VAR NAME="EMAIL" ESCAPE=HTML>"
+                   placeholder="you@example.com" autocomplete="off">
+            <p class="help-block">The email you use to sign in to the Marstek mobile app.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="col-sm-3 control-label">Account password</label>
+          <div class="col-sm-9">
+            <input type="password" class="form-control" name="password" id="password"
+                   placeholder="<TMPL_IF NAME="PASSWORD_SET">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull; (leave blank to keep)<TMPL_ELSE>Enter password</TMPL_IF>"
+                   autocomplete="new-password">
+            <p class="help-block">
+              Stored locally in <code>config/default.json</code>; MD5-hashed only at request time.
+              Leave blank to keep the existing password.
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="api_base_url" class="col-sm-3 control-label">API base URL</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="api_base_url" id="api_base_url"
+                   value="<TMPL_VAR NAME="API_BASE_URL" ESCAPE=HTML>">
+            <p class="help-block">Default <code>https://eu.hamedata.com</code>. Change only for non-EU regions.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="poll_interval_seconds" class="col-sm-3 control-label">Poll interval</label>
+          <div class="col-sm-9">
+            <div class="input-group" style="max-width: 200px;">
+              <input type="number" class="form-control" name="poll_interval_seconds" id="poll_interval_seconds"
+                     value="<TMPL_VAR NAME="POLL_INTERVAL_SECONDS" ESCAPE=HTML>" min="10" max="3600" step="5">
+              <span class="input-group-addon">seconds</span>
+            </div>
+            <p class="help-block">10 &ndash; 3600. The Marstek Cloud typically updates every 60 s.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MQTT -->
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fas fa-paper-plane"></i> MQTT broker</h3>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <label for="use_loxberry_mqtt" class="col-sm-3 control-label">Broker</label>
+          <div class="col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="use_loxberry_mqtt" id="use_loxberry_mqtt" value="1"
+                     <TMPL_IF NAME="USE_LOXBERRY_MQTT">checked</TMPL_IF>>
+              Use the built-in LoxBerry MQTT broker
+              <TMPL_IF NAME="LB_MQTT_AVAILABLE">
+                <small class="text-muted">
+                  &mdash; auto-discovered: <code><TMPL_VAR NAME="LB_MQTT_HOST" ESCAPE=HTML>:<TMPL_VAR NAME="LB_MQTT_PORT" ESCAPE=HTML></code><TMPL_IF NAME="LB_MQTT_USER"> as <code><TMPL_VAR NAME="LB_MQTT_USER" ESCAPE=HTML></code></TMPL_IF>
+                </small>
+              <TMPL_ELSE>
+                <small class="text-danger">
+                  &mdash; could not auto-discover; the LoxBerry MQTT broker may not be configured. Uncheck to enter credentials manually.
+                </small>
+              </TMPL_IF>
+            </label>
+            <p class="help-block">
+              Recommended. The plugin reads the broker host, port, username and password
+              from the LoxBerry system settings &mdash; no credentials needed here.
+              Uncheck only if you want to publish to a different broker.
+            </p>
+          </div>
+        </div>
+
+        <fieldset id="manual_broker_fields">
+
+          <div class="form-group">
+            <label for="mqtt_host" class="col-sm-3 control-label">Broker host</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" name="mqtt_host" id="mqtt_host"
+                     value="<TMPL_VAR NAME="MQTT_HOST" ESCAPE=HTML>" placeholder="localhost">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="mqtt_port" class="col-sm-3 control-label">Broker port</label>
+            <div class="col-sm-9">
+              <input type="number" class="form-control" name="mqtt_port" id="mqtt_port"
+                     value="<TMPL_VAR NAME="MQTT_PORT" ESCAPE=HTML>" min="1" max="65535"
+                     style="max-width: 150px;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="mqtt_username" class="col-sm-3 control-label">Broker username</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control" name="mqtt_username" id="mqtt_username"
+                     value="<TMPL_VAR NAME="MQTT_USERNAME" ESCAPE=HTML>" autocomplete="off">
+              <p class="help-block">Leave blank if your broker accepts anonymous connections.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="mqtt_password" class="col-sm-3 control-label">Broker password</label>
+            <div class="col-sm-9">
+              <input type="password" class="form-control" name="mqtt_password" id="mqtt_password"
+                     placeholder="<TMPL_IF NAME="MQTT_PASSWORD_SET">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull; (leave blank to keep)<TMPL_ELSE>Enter password</TMPL_IF>"
+                     autocomplete="new-password">
+            </div>
+          </div>
+
+        </fieldset>
+
+        <div class="form-group">
+          <label for="mqtt_topic_prefix" class="col-sm-3 control-label">Topic prefix</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="mqtt_topic_prefix" id="mqtt_topic_prefix"
+                   value="<TMPL_VAR NAME="MQTT_TOPIC_PREFIX" ESCAPE=HTML>" placeholder="marstek"
+                   style="max-width: 250px;">
+            <p class="help-block">
+              Published topics:
+              <code><TMPL_VAR NAME="MQTT_TOPIC_PREFIX" ESCAPE=HTML>/&lt;serial&gt;/&lt;datapoint&gt;</code>
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="register_mqtt_subscription" id="register_mqtt_subscription" value="1"
+                     <TMPL_IF NAME="REGISTER_MQTT_SUB">checked</TMPL_IF>>
+              Auto-register topic prefix with the LoxBerry MQTT Gateway
+            </label>
+            <p class="help-block">
+              Writes
+              <code>&lt;plugin&nbsp;config&gt;/mqtt_subscriptions.cfg</code>
+              so the built-in MQTT Gateway relays
+              <code><TMPL_VAR NAME="MQTT_TOPIC_PREFIX" ESCAPE=HTML>/#</code>
+              to the Loxone Miniserver as Virtual Inputs &mdash; no manual
+              subscription needed in the MQTT settings.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      // Hide manual broker fields when the "Use built-in LoxBerry broker"
+      // checkbox is on. Pure JS, no jQuery dependency.
+      (function () {
+        var cb = document.getElementById('use_loxberry_mqtt');
+        var fs = document.getElementById('manual_broker_fields');
+        if (!cb || !fs) return;
+        function sync() { fs.style.display = cb.checked ? 'none' : ''; }
+        cb.addEventListener('change', sync);
+        sync();
+      })();
+    </script>
+
+    <!-- Advanced -->
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fas fa-cog"></i> Advanced</h3>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="mqtt_dry_run" id="mqtt_dry_run" value="1" <TMPL_IF NAME="MQTT_DRY_RUN">checked</TMPL_IF>>
+              MQTT dry-run (log only, don't publish)
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="publish_raw_json" id="publish_raw_json" value="1" <TMPL_IF NAME="PUBLISH_RAW_JSON">checked</TMPL_IF>>
+              Also publish raw JSON to <code>&lt;prefix&gt;/&lt;serial&gt;/raw_json</code>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-9">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="debug" id="debug" value="1" <TMPL_IF NAME="DEBUG">checked</TMPL_IF>>
+              Verbose logging (debug)
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-3 col-sm-9">
+        <button type="submit" name="save" value="1" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save and restart daemon
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- MQTT topic reference -->
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title"><i class="fas fa-list"></i> Published topics</h3>
+    </div>
+    <div class="panel-body">
+      <p>For each device returned by the cloud API:</p>
+      <table class="table table-condensed table-striped">
+        <thead>
+          <tr><th>Topic suffix</th><th>Description</th><th>Unit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>soc</code></td><td>State of charge</td><td>%</td></tr>
+          <tr><td><code>charge</code></td><td>Charge power</td><td>W</td></tr>
+          <tr><td><code>discharge</code></td><td>Discharge power</td><td>W</td></tr>
+          <tr><td><code>load</code></td><td>Load power</td><td>W</td></tr>
+          <tr><td><code>profit</code></td><td>Lifetime profit</td><td>€</td></tr>
+          <tr><td><code>version</code></td><td>Firmware version</td><td>&mdash;</td></tr>
+          <tr><td><code>sn</code></td><td>Serial number</td><td>&mdash;</td></tr>
+          <tr><td><code>report_time</code></td><td>Device-side report time</td><td>epoch s</td></tr>
+          <tr><td><code>connection_status</code></td><td>online / offline</td><td>&mdash;</td></tr>
+          <tr><td><code>last_update_epoch</code></td><td>Last successful poll</td><td>epoch s</td></tr>
+          <tr><td><code>api_latency_ms</code></td><td>Last API call latency</td><td>ms</td></tr>
+        </tbody>
+      </table>
+      <p class="text-muted">
+        Plus plugin-wide:
+        <code><TMPL_VAR NAME="MQTT_TOPIC_PREFIX" ESCAPE=HTML>/_status</code>,
+        <code>_device_count</code>,
+        <code>_last_poll_epoch</code>.
+      </p>
+      <p>
+        In the LoxBerry <strong>MQTT Gateway</strong> plugin add the subscription:
+        <code><TMPL_VAR NAME="MQTT_TOPIC_PREFIX" ESCAPE=HTML>/#</code>
+      </p>
+    </div>
+  </div>
+
+</div>
