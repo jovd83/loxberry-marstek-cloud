@@ -109,8 +109,11 @@ curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1
 
 - **LoxBerry ≥ 3.0** (plugin uses `INTERFACE=2.0`; LoxBerry 3.0.x is the
   current stable branch).
-- A working **Marstek account** with at least one paired device (the
-  account you use in the Marstek mobile app).
+- A working **Marstek account** with at least one paired device.
+  > [!IMPORTANT]
+  > **Account Sharing Requirement:** You should create a **second account** in the Marstek app, share your battery/devices with it, and use that second account in the plugin. If you use your main account in both the mobile app and this plugin, you will be repeatedly logged out of the mobile app.
+  > 
+  > **API Endpoints:** The default API URL (`https://eu.hamedata.com`) only works in Europe. Other continents should use their respective region's API URL (e.g., under the `*.hamedata.com` domain, such as `https://us.hamedata.com` for North America).
 - LoxBerry's built-in MQTT broker (mosquitto) and built-in MQTT Gateway
   must be running — both ship enabled by default in LoxBerry 3.0.
 
@@ -145,7 +148,7 @@ owner `loxberry:loxberry`) — fields:
 | `enabled` | `true` | Master switch — when off, daemon exits cleanly. |
 | `email` | `""` | Marstek account email. Required. Whitespace stripped on save. |
 | `password` | `""` | Marstek account password. Required. Stored locally, MD5-hashed only at request time. Whitespace stripped on save. |
-| `api_base_url` | `https://eu.hamedata.com` | Marstek API base. Validated against allow-list: `*.hamedata.com` and `localhost` only. |
+| `api_base_url` | `https://eu.hamedata.com` | Marstek API base. Defaults to the Europe region endpoint. Other continents must use their respective regional API URL (e.g. under the `*.hamedata.com` domain). Validated against allow-list: `*.hamedata.com` and `localhost` only. |
 | `poll_interval_seconds` | `60` | Clamped to 10 – 3 600. |
 | `request_timeout_seconds` | `15` | Per-request HTTP timeout, clamped to 3 – 120. |
 | `request_attempts` | `3` | Retries per call, exponential backoff capped at 10 s, clamped 1 – 10. |
