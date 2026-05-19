@@ -19,7 +19,7 @@ Home Assistant integration plus our own live probes against the EU endpoint.
 
 ## Status
 
-**Pre-release / v0.1.0.** Functionally complete; tested end-to-end against
+**Pre-release / v0.1.1.** Functionally complete; tested end-to-end against
 the real Marstek cloud API and the LoxBerry built-in MQTT Gateway inside a
 sandbox container, and confirmed running on a physical LoxBerry 3.0.1.2
 (Raspberry Pi 4, aarch64) — see screenshots below. Treat as beta and
@@ -49,26 +49,26 @@ all status **OK**:
 
 ## Download
 
-Direct link to the installable ZIP for the current release (v0.1.0):
+Direct link to the installable ZIP for the current release (v0.1.1):
 
 ```
-https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.1/marstek-cloud-0.1.1.zip
 ```
 
 Version-agnostic "always-latest" URL (GitHub redirects to whichever release
-is marked latest — currently v0.1.0):
+is marked latest — currently v0.1.1):
 
 ```
-https://github.com/jovd83/loxberry-marstek-cloud/releases/latest/download/marstek-cloud-0.1.0.zip
+https://github.com/jovd83/loxberry-marstek-cloud/releases/latest/download/marstek-cloud-0.1.1.zip
 ```
 
 Or browse the release page:
-<https://github.com/jovd83/loxberry-marstek-cloud/releases/tag/v0.1.0>
+<https://github.com/jovd83/loxberry-marstek-cloud/releases/tag/v0.1.1>
 
 You can also pull it directly on the LoxBerry host with:
 
 ```bash
-curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.1/marstek-cloud-0.1.1.zip
 ```
 
 ## Features
@@ -212,7 +212,7 @@ The plugin page surfaces the daemon's current state at the top
 | Daemon log: `{'code': '3', 'msg': '该邮箱暂未注册', ...}` | Marstek does not recognise this email | Verify the email is the exact one you use in the Marstek mobile app, and that the account region matches `api_base_url` (default is EU). |
 | `Refusing to start: api_base_url host '…' is not on the allow-list` | A non-`hamedata.com` URL was saved in `default.json` (hand-edited or via the form) | Restore to `https://eu.hamedata.com` (or another regional Marstek endpoint on the `*.hamedata.com` domain). |
 | Topics appear in `mosquitto_sub -t '#'` but **not** in Loxone | LoxBerry's built-in MQTT Gateway is not running or has not picked up `mqtt_subscriptions.cfg` | Check *System → MQTT → Gateway* in the LoxBerry UI; confirm `<prefix>/#` is in the subscription list. The plugin writes this file on every daemon start. |
-| `_status` stuck on `error` even after fixing creds | Daemon got stuck on a cached token | The plugin auto-handles this since v0.1.0 (code-as-string fix). If still stuck, *Save and restart daemon* on the plugin page. |
+| `_status` stuck on `error` even after fixing creds | Daemon got stuck on a cached token | The plugin auto-handles this since v0.1.1 (code-as-string fix). If still stuck, *Save and restart daemon* on the plugin page. |
 | `Missing dependency: paho-mqtt` | apt step failed at install time | `sudo apt-get install -y python3-paho-mqtt` on the LoxBerry host, then restart the plugin daemon. |
 
 ## Development

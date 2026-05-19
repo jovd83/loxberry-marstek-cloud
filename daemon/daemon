@@ -2,20 +2,25 @@
 # LoxBerry daemon wrapper for marstek-cloud.
 #
 # Supports two invocation styles:
-#   (1) no-arg                 — used by /etc/systemd/system/loxberry.service at
-#                                boot. The reference implementation is
-#                                /opt/loxberry/system/daemons/system/50-mqttgateway:
-#                                two lines, su to loxberry, fork to background.
+#   (1) no-arg                 — used by loxberry.service at boot. The
+#                                reference implementation is the built-in
+#                                MQTT gateway daemon hook: two lines, su to
+#                                loxberry, fork to background.
 #   (2) start|stop|restart|status — SysV-style; used by the plugin's web UI
 #                                ("Save and restart daemon").
 #
-# Plugin LB env vars (LBPBINDIR, LBPLOGDIR, …) are NOT set when invoked by
-# loxberry.service, so derive everything from a fixed plugin folder name.
+# LBHOMEDIR and the LBP* parent dirs (LBPBIN, LBPCONFIG, LBPLOG, …) are
+# exported by /etc/environment and inherited from loxberry.service. The
+# per-plugin LBP*DIR (e.g. LBPBINDIR=$LBPBIN/$plugin) are NOT exported, so
+# we derive those below from a fixed plugin folder name.
 
 set -eu
 
+# Belt-and-suspenders: if invoked outside loxberry.service (e.g. by hand),
+# source /etc/environment so LBHOMEDIR etc. are still available.
+[ -z "${LBHOMEDIR:-}" ] && [ -r /etc/environment ] && . /etc/environment
+
 PLUGINNAME="marstek-cloud"
-LBHOMEDIR="${LBHOMEDIR:-/opt/loxberry}"
 DAEMON_USER="loxberry"
 DAEMON_PATH="${LBHOMEDIR}/bin/plugins/${PLUGINNAME}/${PLUGINNAME}.py"
 PIDFILE="${LBHOMEDIR}/log/plugins/${PLUGINNAME}/${PLUGINNAME}.pid"
