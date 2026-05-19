@@ -10,7 +10,7 @@ use LoxBerry::System;
 use LoxBerry::Web;
 
 my $cgi      = CGI->new;
-my $version  = "0.1.0";
+my $version  = "0.1.2";
 my $cfgfile  = "$lbpconfigdir/default.json";
 my $cfgobj   = LoxBerry::JSON->new();
 my $cfg      = -f $cfgfile ? $cfgobj->open(filename => $cfgfile) : {};
