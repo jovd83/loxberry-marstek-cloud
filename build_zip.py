@@ -53,7 +53,7 @@ def main():
                 return True
         return False
 
-    # 3. Build the zip file
+    # 3. Build the zip file with explicit Unix file permissions
     with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zip_file:
         count = 0
         for root, dirs, files in os.walk("."):
@@ -66,11 +66,35 @@ def main():
                 if should_exclude(rel_path):
                     continue
                 
-                archive_path = os.path.join(plugin_name, rel_path)
-                zip_file.write(rel_path, archive_path)
+                archive_path = os.path.join(plugin_name, rel_path).replace("\\", "/")
+                
+                # Determine Unix file permissions:
+                # CGIs, daemons, shell scripts, python scripts should be executable (0o755)
+                # Other files (like png, cfg, json, html) should be standard readable (0o644)
+                is_executable = (
+                    rel_path.endswith(".cgi") or 
+                    rel_path.endswith(".sh") or 
+                    rel_path.endswith(".py") or 
+                    "daemon/daemon" in rel_path.replace("\\", "/") or
+                    "bin/" in rel_path.replace("\\", "/")
+                )
+                
+                mode = 0o755 if is_executable else 0o644
+                
+                # Load the file content
+                with open(rel_path, "rb") as f:
+                    file_data = f.read()
+                
+                # Create ZipInfo object and set Unix external attributes
+                zinfo = zipfile.ZipInfo(archive_path)
+                zinfo.external_attr = (mode | 0o100000) << 16  # S_IFREG (regular file)
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                
+                # Write to the ZIP archive
+                zip_file.writestr(zinfo, file_data)
                 count += 1
                 
-        print(f"Successfully packaged {count} files into {zip_filename}!")
+        print(f"Successfully packaged {count} files with explicit permissions into {zip_filename}!")
 
     # 4. Automatically copy to loxberry-integrator sandbox if it exists
     # Sibling check: c:\projects\Loxberry_plugins\Marstek-cloud -> c:\projects\skills\loxberry-integrator\sandbox
