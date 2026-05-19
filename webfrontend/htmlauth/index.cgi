@@ -84,11 +84,13 @@ if ($cgi->request_method eq "POST" && defined $cgi->param("save")) {
         # Restrict to owner-only — only the loxberry user (which runs both
         # this CGI and the daemon) needs to read it.
         chmod 0600, $cfgfile;
-        # LoxBerry installs the daemon hook here; bin/../daemon/daemon
-        # doesn't exist post-install. Redirect output to a log file —
-        # anything the wrapper prints would otherwise leak into the HTTP
-        # response stream and corrupt the page (Apache returns 500).
-        my $daemon = "/opt/loxberry/system/daemons/plugins/marstek-cloud";
+        # LoxBerry installs the daemon hook under <lbhomedir>/system/daemons/plugins/.
+        # bin/../daemon/daemon doesn't exist post-install. Redirect output to a
+        # log file — anything the wrapper prints would otherwise leak into the
+        # HTTP response stream and corrupt the page (Apache returns 500). Do
+        # not hardcode the LoxBerry install root here; the installer's linter
+        # grep -l's daemon scripts for it.
+        my $daemon = "$lbhomedir/system/daemons/plugins/marstek-cloud";
         if (-x $daemon) {
             system("$daemon restart >>'$lbplogdir/daemon-restart.log' 2>&1");
         }

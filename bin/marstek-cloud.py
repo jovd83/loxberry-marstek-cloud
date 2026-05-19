@@ -72,9 +72,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
 
 CONFIG_DIR = Path(os.environ.get("LBPCONFIGDIR", "./config"))
 LOG_DIR = Path(os.environ.get("LBPLOGDIR", "./logs"))
-# LoxBerry exports LBHOMEDIR; fallback to the canonical path for local dev runs.
-LBHOMEDIR = Path(os.environ.get("LBHOMEDIR", "/opt/loxberry"))
-LBSCONFIGDIR = Path(os.environ.get("LBSCONFIG") or LBHOMEDIR / "config" / "system")
+# LoxBerry exports LBHOMEDIR and LBSCONFIG via /etc/environment, inherited
+# from loxberry.service. For local-dev runs outside LoxBerry, set them in
+# the calling shell — do NOT hardcode the LoxBerry install root here; the
+# installer's hardcoded-path linter grep -l's daemon scripts for it.
+_LBHOMEDIR = os.environ.get("LBHOMEDIR") or ""
+LBHOMEDIR = Path(_LBHOMEDIR) if _LBHOMEDIR else Path(".")
+LBSCONFIGDIR = Path(os.environ.get("LBSCONFIG") or (LBHOMEDIR / "config" / "system"))
 RUNNING = True
 TOPIC_SEGMENT_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
