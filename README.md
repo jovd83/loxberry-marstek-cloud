@@ -113,7 +113,7 @@ curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1
   > [!IMPORTANT]
   > **Account Sharing Requirement:** You should create a **second account** in the Marstek app, share your battery/devices with it, and use that second account in the plugin. If you use your main account in both the mobile app and this plugin, you will be repeatedly logged out of the mobile app.
   > 
-  > **API Endpoints:** The default API URL (`https://eu.hamedata.com`) only works in Europe. Other continents should use their respective region's API URL (e.g., under the `*.hamedata.com` domain, such as `https://us.hamedata.com` for North America).
+  > **API Endpoints:** The default API URL (`https://eu.hamedata.com`) only works in Europe. Other continents should use their respective region's API URL (which must belong to the `*.hamedata.com` domain).
 - LoxBerry's built-in MQTT broker (mosquitto) and built-in MQTT Gateway
   must be running — both ship enabled by default in LoxBerry 3.0.
 
