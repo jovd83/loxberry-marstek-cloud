@@ -40,7 +40,7 @@ except ImportError:
 
 
 PLUGIN_NAME = "marstek-cloud"
-PLUGIN_VERSION = "1.0.0"  # keep in sync with plugin.cfg [PLUGIN] VERSION
+PLUGIN_VERSION = "1.0.1"  # keep in sync with plugin.cfg [PLUGIN] VERSION
 DEFAULT_CONFIG: dict[str, Any] = {
     "enabled": True,
     "email": "",

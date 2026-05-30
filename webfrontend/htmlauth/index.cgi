@@ -10,7 +10,7 @@ use LoxBerry::System;
 use LoxBerry::Web;
 
 my $cgi      = CGI->new;
-my $version  = "1.0.0";  # keep in sync with plugin.cfg [PLUGIN] VERSION
+my $version  = "1.0.1";  # keep in sync with plugin.cfg [PLUGIN] VERSION
 my $cfgfile  = "$lbpconfigdir/default.json";
 my $cfgobj   = LoxBerry::JSON->new();
 my $cfg      = -f $cfgfile ? $cfgobj->open(filename => $cfgfile) : {};
