@@ -1,8 +1,8 @@
 # LoxBerry — Marstek Cloud Plugin
 
+[![Validate](https://github.com/jovd83/loxberry-marstek-cloud/actions/workflows/validate.yml/badge.svg)](https://github.com/jovd83/loxberry-marstek-cloud/actions/workflows/validate.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/jovd83/loxberry-marstek-cloud)](https://github.com/jovd83/loxberry-marstek-cloud/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![LoxBerry](https://img.shields.io/badge/LoxBerry-3.0%2B-blue)](https://wiki.loxberry.de/)
-[![Status](https://img.shields.io/badge/status-pre--release-orange)](#status)
 
 Bridges the **Marstek Cloud** (`eu.hamedata.com`, used by the official Marstek
 mobile app) into a Loxone Miniserver via the LoxBerry built-in MQTT Gateway.

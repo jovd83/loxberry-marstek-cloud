@@ -42,8 +42,7 @@ def main():
         r"^\.idea",
         r"^\.vscode",
         r"^build_zip\.py$",
-        rf"^{plugin_name}-.*\.zip$",
-        r"^jovd83-.*\.zip$"
+        rf"^{plugin_name}-.*\.zip$"
     ]
     
     def should_exclude(path_str):

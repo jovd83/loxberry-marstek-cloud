@@ -219,19 +219,6 @@
       </div>
     </div>
 
-    <script>
-      // Hide manual broker fields when the "Use built-in LoxBerry broker"
-      // checkbox is on. Pure JS, no jQuery dependency.
-      (function () {
-        var cb = document.getElementById('use_loxberry_mqtt');
-        var fs = document.getElementById('manual_broker_fields');
-        if (!cb || !fs) return;
-        function sync() { fs.style.display = cb.checked ? 'none' : ''; }
-        cb.addEventListener('change', sync);
-        sync();
-      })();
-    </script>
-
     <!-- Advanced -->
     <div class="panel panel-default">
       <div class="panel-heading">
@@ -276,6 +263,19 @@
         </button>
       </div>
     </div>
+
+    <script>
+      // Hide manual broker fields when the "Use built-in LoxBerry broker"
+      // checkbox is on. Pure JS, no jQuery dependency.
+      (function () {
+        var cb = document.getElementById('use_loxberry_mqtt');
+        var fs = document.getElementById('manual_broker_fields');
+        if (!cb || !fs) return;
+        function sync() { fs.style.display = cb.checked ? 'none' : ''; }
+        cb.addEventListener('change', sync);
+        sync();
+      })();
+    </script>
 
   </form>
 

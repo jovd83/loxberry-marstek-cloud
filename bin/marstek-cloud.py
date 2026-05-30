@@ -25,6 +25,7 @@ import re
 import signal
 import socket
 import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -39,6 +40,7 @@ except ImportError:
 
 
 PLUGIN_NAME = "marstek-cloud"
+PLUGIN_VERSION = "1.0.0"  # keep in sync with plugin.cfg [PLUGIN] VERSION
 DEFAULT_CONFIG: dict[str, Any] = {
     "enabled": True,
     "email": "",
@@ -79,7 +81,7 @@ LOG_DIR = Path(os.environ.get("LBPLOGDIR", "./logs"))
 _LBHOMEDIR = os.environ.get("LBHOMEDIR") or ""
 LBHOMEDIR = Path(_LBHOMEDIR) if _LBHOMEDIR else Path(".")
 LBSCONFIGDIR = Path(os.environ.get("LBSCONFIG") or (LBHOMEDIR / "config" / "system"))
-RUNNING = True
+_shutdown = threading.Event()
 TOPIC_SEGMENT_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
@@ -92,9 +94,8 @@ class TokenExpired(MarstekCloudError):
 
 
 def handle_shutdown(signum: int, _frame: Any) -> None:
-    global RUNNING
     logging.info("Received signal %s, stopping daemon", signum)
-    RUNNING = False
+    _shutdown.set()
 
 
 signal.signal(signal.SIGTERM, handle_shutdown)
@@ -318,7 +319,7 @@ class MarstekCloudClient:
     def _request(self, method: str, url: str) -> dict[str, Any]:
         req = urllib.request.Request(url, method=method)
         req.add_header("Accept", "application/json")
-        req.add_header("User-Agent", f"LoxBerry-{PLUGIN_NAME}/0.1")
+        req.add_header("User-Agent", f"LoxBerry-{PLUGIN_NAME}/{PLUGIN_VERSION}")
         safe_url = redact_url(url)
         started = time.monotonic()
         try:
@@ -343,7 +344,7 @@ class MarstekCloudClient:
             except MarstekCloudError as err:
                 last_error = err
                 logging.warning("%s failed (attempt %s/%s): %s", label, attempt, self.attempts, err)
-                if attempt < self.attempts and RUNNING:
+                if attempt < self.attempts and not _shutdown.is_set():
                     time.sleep(min(2 ** (attempt - 1), 10))
         assert last_error is not None
         raise last_error
@@ -411,11 +412,24 @@ class MqttPublisher:
         password = config.get("mqtt_password")
         if username:
             self.client.username_pw_set(username, password or None)
-        self.client.connect(
-            config.get("mqtt_host", "localhost"),
-            int(config.get("mqtt_port", 1883)),
-            keepalive=30,
-        )
+        host = config.get("mqtt_host", "localhost")
+        port = int(config.get("mqtt_port", 1883))
+        _CONNECT_ATTEMPTS = 3
+        for attempt in range(1, _CONNECT_ATTEMPTS + 1):
+            try:
+                self.client.connect(host, port, keepalive=30)
+                break
+            except OSError as err:
+                if attempt == _CONNECT_ATTEMPTS:
+                    raise MarstekCloudError(
+                        f"Cannot connect to MQTT broker at {host}:{port} after "
+                        f"{_CONNECT_ATTEMPTS} attempts: {err}"
+                    ) from err
+                logging.warning(
+                    "MQTT connect attempt %s/%s failed: %s; retrying in 5 s",
+                    attempt, _CONNECT_ATTEMPTS, err,
+                )
+                time.sleep(5)
         self.client.loop_start()
 
     def close(self) -> None:
@@ -520,16 +534,13 @@ def main() -> int:
     publisher = MqttPublisher(config)
 
     try:
-        while RUNNING:
+        while not _shutdown.is_set():
             try:
                 poll_once(config, client, publisher)
             except Exception as err:
                 logging.exception("Polling cycle failed: %s", err)
                 publisher.publish(f"{config['mqtt_topic_prefix']}/_status", "error")
-            for _ in range(int(config["poll_interval_seconds"])):
-                if not RUNNING:
-                    break
-                time.sleep(1)
+            _shutdown.wait(timeout=config["poll_interval_seconds"])
     finally:
         publisher.publish(f"{config['mqtt_topic_prefix']}/_status", "offline")
         publisher.close()

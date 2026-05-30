@@ -10,7 +10,7 @@ use LoxBerry::System;
 use LoxBerry::Web;
 
 my $cgi      = CGI->new;
-my $version  = "0.1.2";
+my $version  = "1.0.0";  # keep in sync with plugin.cfg [PLUGIN] VERSION
 my $cfgfile  = "$lbpconfigdir/default.json";
 my $cfgobj   = LoxBerry::JSON->new();
 my $cfg      = -f $cfgfile ? $cfgobj->open(filename => $cfgfile) : {};
@@ -92,7 +92,8 @@ if ($cgi->request_method eq "POST" && defined $cgi->param("save")) {
         # grep -l's daemon scripts for it.
         my $daemon = "$lbhomedir/system/daemons/plugins/marstek-cloud";
         if (-x $daemon) {
-            system("$daemon restart >>'$lbplogdir/daemon-restart.log' 2>&1");
+            my $log = "$lbplogdir/daemon-restart.log";
+            system(qq("$daemon" restart >>"$log" 2>&1));
         }
     } else {
         $errormsg = "Could not save configuration: $@";

@@ -1,0 +1,29 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Syntax check daemon
+        run: python -m py_compile bin/marstek-cloud.py
+
+      - name: Syntax check build script
+        run: python -m py_compile build_zip.py
+
+      - name: Build plugin ZIP
+        run: python build_zip.py
+
+      - name: Verify ZIP produced
+        run: ls marstek-cloud-*.zip
