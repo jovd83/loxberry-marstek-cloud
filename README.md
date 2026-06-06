@@ -19,7 +19,7 @@ Home Assistant integration plus our own live probes against the EU endpoint.
 
 ## Status
 
-**Pre-release / v0.1.0.** Functionally complete; tested end-to-end against
+**Stable / v1.0.1.** Functionally complete; tested end-to-end against
 the real Marstek cloud API and the LoxBerry built-in MQTT Gateway inside a
 sandbox container, and confirmed running on a physical LoxBerry 3.0.1.2
 (Raspberry Pi 4, aarch64) — see screenshots below. Treat as beta and
@@ -49,26 +49,26 @@ all status **OK**:
 
 ## Download
 
-Direct link to the installable ZIP for the current release (v0.1.0):
+Direct link to the installable ZIP for the current release (v1.0.1):
 
 ```
-https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v1.0.1/marstek-cloud-1.0.1.zip
 ```
 
 Version-agnostic "always-latest" URL (GitHub redirects to whichever release
-is marked latest — currently v0.1.0):
+is marked latest — currently v1.0.1):
 
 ```
-https://github.com/jovd83/loxberry-marstek-cloud/releases/latest/download/marstek-cloud-0.1.0.zip
+https://github.com/jovd83/loxberry-marstek-cloud/releases/latest/download/marstek-cloud-1.0.1.zip
 ```
 
 Or browse the release page:
-<https://github.com/jovd83/loxberry-marstek-cloud/releases/tag/v0.1.0>
+<https://github.com/jovd83/loxberry-marstek-cloud/releases/tag/v1.0.1>
 
 You can also pull it directly on the LoxBerry host with:
 
 ```bash
-curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v0.1.0/marstek-cloud-0.1.0.zip
+curl -LO https://github.com/jovd83/loxberry-marstek-cloud/releases/download/v1.0.1/marstek-cloud-1.0.1.zip
 ```
 
 ## Features
@@ -233,7 +233,7 @@ python build_zip.py
 
 This script will automatically:
 1. Parse `plugin.cfg` to extract the correct name and version.
-2. Package all source files into a LoxBerry-compliant ZIP file (e.g., `marstek-cloud-0.1.0.zip`).
+2. Package all source files into a LoxBerry-compliant ZIP file (e.g., `marstek-cloud-1.0.1.zip`).
 3. Automatically search for a sibling [`loxberry-integrator`](https://github.com/jovd83/loxberry-integrator) repository and copy the built ZIP directly into its `sandbox/` directory for immediate local testing.
 
 ### Sandbox Testing
